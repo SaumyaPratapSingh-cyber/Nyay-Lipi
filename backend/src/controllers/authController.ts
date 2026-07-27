@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import { User } from '../models/User';
+import { connectDB, autoSeedIfEmpty } from '../config/database';
 
 export class AuthController {
   /**
@@ -19,6 +21,13 @@ export class AuthController {
    */
   public static async login(req: Request, res: Response): Promise<void> {
     try {
+      // Ensure DB connection is active
+      if (mongoose.connection.readyState !== 1) {
+        await connectDB();
+      }
+
+      await autoSeedIfEmpty();
+
       const { credentialInput: rawCred, badgeNumber, email, password } = req.body;
       const credentialInput = (rawCred || badgeNumber || email || '').trim();
 
@@ -88,6 +97,10 @@ export class AuthController {
    */
   public static async getProfile(req: any, res: Response): Promise<void> {
     try {
+      if (mongoose.connection.readyState !== 1) {
+        await connectDB();
+      }
+
       const user = await User.findById(req.user?.userId)
         .select('-passwordHash')
         .populate('stationId', 'name stationCode district spEmail');
