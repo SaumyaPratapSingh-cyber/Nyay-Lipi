@@ -1,7 +1,9 @@
+/// <reference types="vite/client" />
+
 // Unified API Gateway Client helper for Nyaya-Lipi
 
 export const getApiUrl = (path: string): string => {
-  const customUrl = import.meta.env.VITE_API_URL;
+  const customUrl = (import.meta as any).env?.VITE_API_URL;
   if (customUrl) {
     const cleanBase = customUrl.replace(/\/$/, '');
     return `${cleanBase}${path}`;
