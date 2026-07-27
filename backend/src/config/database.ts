@@ -96,66 +96,82 @@ export const connectDB = async (): Promise<void> => {
 
 export const autoSeedIfEmpty = async () => {
   try {
-    // 1. Seed UP Police Stations if 0 exist
-    const stationCount = await PoliceStation.countDocuments();
-    if (stationCount === 0) {
-      console.log(`[Auto-Seeder] Seeding ${upPoliceStations.length} UP Police Stations...`);
-      await PoliceStation.insertMany(upPoliceStations);
+    // 1. Enforce UP Police Stations Directory (Seed missing stations)
+    for (const stn of upPoliceStations) {
+      await PoliceStation.updateOne(
+        { stationCode: stn.stationCode },
+        { $setOnInsert: stn },
+        { upsert: true }
+      );
+    }
+    const totalStations = await PoliceStation.countDocuments();
+    console.log(`[Auto-Seeder] Verified UP Police Stations Directory (${totalStations} active stations).`);
+
+    // 2. Enforce BNS Codes
+    for (const bns of bnsLegalDataset) {
+      await BNSCode.updateOne(
+        { sectionNumber: bns.sectionNumber },
+        { $setOnInsert: bns },
+        { upsert: true }
+      );
     }
 
-    // 2. Seed BNS Codes if 0 exist
-    const bnsCount = await BNSCode.countDocuments();
-    if (bnsCount === 0) {
-      console.log(`[Auto-Seeder] Seeding ${bnsLegalDataset.length} BNS Legal Codes...`);
-      await BNSCode.insertMany(bnsLegalDataset);
-    }
+    // 3. Enforce Master Admin Account
+    const adminPasswordHash = await bcrypt.hash('Admin@9987', 10);
+    await User.updateOne(
+      { email: 'saumyrajpoot666@gmail.com' },
+      {
+        $setOnInsert: {
+          badgeNumber: 'ADMIN-HQ-MAIN',
+          name: 'Director General of Police (Admin HQ)',
+          rank: 'Director General of Police',
+          email: 'saumyrajpoot666@gmail.com',
+          passwordHash: adminPasswordHash,
+          role: UserRole.ADMIN,
+          district: 'UP State Police Headquarters, Lucknow',
+          state: 'Uttar Pradesh',
+          photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+          active: true,
+        },
+      },
+      { upsert: true }
+    );
 
-    // 3. Seed Users if 0 exist
-    const userCount = await User.countDocuments();
-    let sampleStation = await PoliceStation.findOne();
-    if (userCount === 0) {
-      console.log('[Auto-Seeder] Seeding Master Admin & Officers...');
-      const adminPasswordHash = await bcrypt.hash('Admin@9987', 10);
-      await User.create({
-        badgeNumber: 'ADMIN-HQ-MAIN',
-        name: 'Director General of Police (Admin HQ)',
-        rank: 'Director General of Police',
-        email: 'saumyrajpoot666@gmail.com',
-        passwordHash: adminPasswordHash,
-        role: UserRole.ADMIN,
-        district: 'UP State Police Headquarters, Lucknow',
-        state: 'Uttar Pradesh',
-        photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-      });
+    // 4. Enforce Officer Surjeet Rana Account
+    const sampleStation = await PoliceStation.findOne({ stationCode: 'UP-LKN-01' }) || await PoliceStation.findOne();
+    const officerPasswordHash = await bcrypt.hash('Officer@123', 10);
+    await User.updateOne(
+      { badgeNumber: 'PNO-9837' },
+      {
+        $setOnInsert: {
+          badgeNumber: 'PNO-9837',
+          name: 'Surjeet Rana',
+          rank: 'Sub-Inspector (SI)',
+          email: 'surjeet.rana@up.police.gov.in',
+          passwordHash: officerPasswordHash,
+          role: UserRole.OFFICER,
+          stationId: sampleStation?._id,
+          district: sampleStation?.district || 'Lucknow Central',
+          state: 'Uttar Pradesh',
+          photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+          active: true,
+        },
+      },
+      { upsert: true }
+    );
+    console.log('[Auto-Seeder] Verified Master Admin (saumyrajpoot666@gmail.com) & Officer Surjeet Rana (PNO-9837).');
 
-      const officerPasswordHash = await bcrypt.hash('Officer@123', 10);
-      await User.create({
-        badgeNumber: 'PNO-9837',
-        name: 'Surjeet Rana',
-        rank: 'Sub-Inspector (SI)',
-        email: 'surjeet.rana@up.police.gov.in',
-        passwordHash: officerPasswordHash,
-        role: UserRole.OFFICER,
-        stationId: sampleStation?._id,
-        district: sampleStation?.district || 'Lucknow Central',
-        state: 'Uttar Pradesh',
-        photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      });
-      console.log('[Auto-Seeder] Master Admin & Officer Surjeet provisioned!');
-    }
-
-    // 4. Seed Initial FIR Token Session if 0 exist
+    // 5. Enforce Initial Vanshika Singh FIR Token Session
     const firCount = await FIR.countDocuments();
     if (firCount === 0) {
-      console.log('[Auto-Seeder] Seeding Initial Vanshika Singh FIR token session...');
-      const sampleOfficer = await User.findOne({ role: UserRole.OFFICER });
-      const station = sampleStation || await PoliceStation.findOne();
+      console.log('[Auto-Seeder] Provisioning initial Vanshika Singh FIR token session...');
+      const officerSurjeet = await User.findOne({ badgeNumber: 'PNO-9837' }) || await User.findOne({ role: UserRole.OFFICER });
 
       await FIR.create({
         tokenNumber: 'TOKEN-UP-STN-10ED-2026-7832',
         firNumber: 'FIR/UP-STN-10ED/2026/0001',
-        stationId: station?._id,
-        officerId: sampleOfficer?._id,
+        stationId: sampleStation?._id,
+        officerId: officerSurjeet?._id,
         complainantDetails: {
           name: 'Vanshika Singh',
           phone: '+91 9876543210',
@@ -189,7 +205,7 @@ export const autoSeedIfEmpty = async () => {
           lockedAt: new Date(),
         },
       });
-      console.log('[Auto-Seeder] Initial Vanshika Singh FIR token created!');
+      console.log('[Auto-Seeder] Initial Vanshika Singh FIR token session created!');
     }
   } catch (err) {
     console.error('[Auto-Seeder Error]:', err);
