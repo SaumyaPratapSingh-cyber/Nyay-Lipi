@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, UserPlus, FileText, Building2, Lock, RefreshCw, Eye, Sparkles, Edit3, X, KeyRound, CheckCircle2, Play, Volume2, Shield } from 'lucide-react';
 import { OfficialFIRPDF } from './OfficialFIRPDF';
-import { getApiUrl } from '../api';
+import { getApiUrl, apiFetch } from '../api';
 
 interface AdminPortalProps {
   token: string;
@@ -35,22 +35,20 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ token }) => {
       setLoading(true);
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [stnRes, usrRes, firRes] = await Promise.all([
-        fetch(getApiUrl('/api/admin/stations'), { headers }),
-        fetch(getApiUrl('/api/admin/users'), { headers }),
-        fetch(getApiUrl('/api/admin/global-firs'), { headers }),
+      const [stnData, usrData, firData] = await Promise.all([
+        apiFetch('/api/admin/stations', { headers }),
+        apiFetch('/api/admin/users', { headers }),
+        apiFetch('/api/admin/global-firs', { headers }),
       ]);
 
-      const [stnData, usrData, firData] = await Promise.all([stnRes.json(), usrRes.json(), firRes.json()]);
-
       if (stnData.success) {
-        setStations(stnData.stations);
-        if (stnData.stations.length > 0 && !officerForm.stationCode) {
+        setStations(stnData.stations || []);
+        if (stnData.stations?.length > 0 && !officerForm.stationCode) {
           setOfficerForm((prev) => ({ ...prev, stationCode: stnData.stations[0].stationCode, district: stnData.stations[0].district }));
         }
       }
-      if (usrData.success) setOfficers(usrData.users);
-      if (firData.success) setGlobalFIRs(firData.firs);
+      if (usrData.success) setOfficers(usrData.users || []);
+      if (firData.success) setGlobalFIRs(firData.firs || []);
     } catch (err) {
       console.error('Error loading admin data:', err);
     } finally {
@@ -79,12 +77,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ token }) => {
     }
 
     try {
-      const res = await fetch(getApiUrl('/api/admin/officers'), {
+      const data = await apiFetch('/api/admin/officers', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify(officerForm),
       });
-      const data = await res.json();
       if (data.success) {
         alert(`Account provisioned successfully for ${officerForm.name} (${officerForm.badgeNumber})!`);
         setOfficerForm({
@@ -110,9 +107,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ token }) => {
   const handleSaveProfileUpdates = async () => {
     if (!selectedOfficer) return;
     try {
-      const res = await fetch(getApiUrl(`/api/admin/users/${selectedOfficer._id}`), {
+      const data = await apiFetch(`/api/admin/users/${selectedOfficer._id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           name: selectedOfficer.name,
           rank: selectedOfficer.rank,
@@ -120,7 +117,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ token }) => {
           photoUrl: selectedOfficer.photoUrl,
         }),
       });
-      const data = await res.json();
       if (data.success) {
         alert(`Officer profile updated successfully for ${selectedOfficer.name}!`);
         setSelectedOfficer(null);
@@ -140,12 +136,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ token }) => {
     }
 
     try {
-      const res = await fetch(getApiUrl(`/api/admin/users/${selectedOfficer._id}/password`), {
+      const data = await apiFetch(`/api/admin/users/${selectedOfficer._id}/password`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify({ newPassword: newPasswordInput }),
       });
-      const data = await res.json();
       if (data.success) {
         alert(`Password reset successfully for ${selectedOfficer.name} (${selectedOfficer.badgeNumber})!`);
         setNewPasswordInput('');

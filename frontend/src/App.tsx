@@ -10,7 +10,7 @@ import { BNSModal } from './components/BNSModal';
 import { IntakeModal } from './components/IntakeModal';
 import { OfficialFIRPDF } from './components/OfficialFIRPDF';
 import { BookOpen, RefreshCw, FileText, PlusCircle, Tag, Shield, ChevronRight, Clock, User, Sparkles, Scale } from 'lucide-react';
-import { getApiUrl } from './api';
+import { getApiUrl, apiFetch } from './api';
 
 export const App: React.FC = () => {
   const [pathname, setPathname] = useState(window.location.pathname);
@@ -71,17 +71,15 @@ export const App: React.FC = () => {
   // Fetch FIRs from backend
   const fetchFIRs = async () => {
     try {
-      const res = await fetch(getApiUrl('/api/firs'));
-      const data = await res.json();
+      const data = await apiFetch('/api/firs');
       if (data.success) {
-        setFirs(data.firs);
+        setFirs(data.firs || []);
       }
 
       // Fetch SP Escalations Queue
-      const spRes = await fetch(getApiUrl('/api/firs/sp/escalations'));
-      const spData = await spRes.json();
+      const spData = await apiFetch('/api/firs/sp/escalations');
       if (spData.success) {
-        setEscalatedFirs(spData.firs);
+        setEscalatedFirs(spData.firs || []);
       }
     } catch (err) {
       console.error('Error fetching FIRs from API:', err);
@@ -97,16 +95,14 @@ export const App: React.FC = () => {
   // Initiate New FIR Token Session via Intake Modal
   const handleInitiateFIR = async (intakeData: any) => {
     try {
-      const res = await fetch(getApiUrl('/api/firs/audio-draft'), {
+      const data = await apiFetch('/api/firs/audio-draft', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           stationId: currentUser?.station?._id || currentUser?.station || undefined,
           officerId: currentUser?.id || currentUser?._id || undefined,
           ...intakeData,
         }),
       });
-      const data = await res.json();
       if (data.success) {
         setActiveFir(data.fir);
         fetchFIRs();
@@ -122,9 +118,8 @@ export const App: React.FC = () => {
   const handleTranscriptGenerated = async (liveTranscript: string, diarization: any[], audioFileUrl?: string) => {
     if (!activeFir) return;
     try {
-      const res = await fetch(getApiUrl(`/api/firs/${activeFir._id}/typed-draft`), {
+      const data = await apiFetch(`/api/firs/${activeFir._id}/typed-draft`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           typedText: activeFir.officerTypedDraft?.typedText || '',
           officerBNSSections: activeFir.officerTypedDraft?.officerBNSSections || ['303(2)'],
@@ -133,7 +128,6 @@ export const App: React.FC = () => {
           diarizationSnippets: diarization,
         }),
       });
-      const data = await res.json();
       if (data.success) {
         setActiveFir(data.fir);
         fetchFIRs();
@@ -147,16 +141,14 @@ export const App: React.FC = () => {
   const handleOfficerTypedSubmit = async (typedText: string, selectedSections: string[]) => {
     if (!activeFir) return;
     try {
-      const res = await fetch(getApiUrl(`/api/firs/${activeFir._id}/typed-draft`), {
+      const data = await apiFetch(`/api/firs/${activeFir._id}/typed-draft`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           typedText,
           officerBNSSections: selectedSections,
           liveAudioTranscript: activeFir.aiAudioTranscriptDraft?.cleanedTranscript || '',
         }),
       });
-      const data = await res.json();
       if (data.success) {
         setActiveFir(data.fir);
         fetchFIRs();
@@ -175,19 +167,18 @@ export const App: React.FC = () => {
     }
 
     try {
-      const res = await fetch(getApiUrl(`/api/firs/${activeFir._id}/register`), {
+      const data = await apiFetch(`/api/firs/${activeFir._id}/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ justificationNotes: justification }),
       });
-      const data = await res.json();
       if (data.success) {
         alert(`FIR ${activeFir.firNumber} (Token: ${activeFir.tokenNumber}) officially registered! Opening Form-I PDF...`);
         setActiveFir(data.fir);
         setPdfFir(data.fir);
         fetchFIRs();
       }
-    } catch (err) {
+    } catch (err: any) {
+      alert(`Error registering FIR: ${err.message}`);
       console.error('Error registering FIR:', err);
     }
   };
@@ -196,17 +187,16 @@ export const App: React.FC = () => {
   const handleReject = async (reason: string) => {
     if (!activeFir) return;
     try {
-      const res = await fetch(getApiUrl(`/api/firs/${activeFir._id}/reject`), {
+      const data = await apiFetch(`/api/firs/${activeFir._id}/reject`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ officerRejectionReason: reason }),
       });
-      const data = await res.json();
       if (data.success) {
         alert('FIR marked for rejection. 24-Hour Supervisor Countdown Started!');
         fetchFIRs();
       }
-    } catch (err) {
+    } catch (err: any) {
+      alert(`Error rejecting FIR: ${err.message}`);
       console.error('Error rejecting FIR:', err);
     }
   };
@@ -214,17 +204,16 @@ export const App: React.FC = () => {
   // Handle SP Action
   const handleSPDecision = async (firId: string, action: 'OVERRIDE_REGISTER' | 'APPROVE_REJECTION', notes: string) => {
     try {
-      const res = await fetch(getApiUrl(`/api/firs/${firId}/sp-action`), {
+      const data = await apiFetch(`/api/firs/${firId}/sp-action`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, spNotes: notes, spBadgeNumber: currentUser?.badgeNumber }),
       });
-      const data = await res.json();
       if (data.success) {
         alert(`SP Decision recorded: ${action}`);
         fetchFIRs();
       }
-    } catch (err) {
+    } catch (err: any) {
+      alert(`Error processing SP decision: ${err.message}`);
       console.error('Error processing SP decision:', err);
     }
   };
