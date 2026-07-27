@@ -18,7 +18,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ isAdminRoute, onLoginS
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const loginEndpoint = `${baseUrl}/api/auth/login`;
+
+      const res = await fetch(loginEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -27,7 +30,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ isAdminRoute, onLoginS
         }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data: any = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (jsonErr) {
+        throw new Error(`Backend server connecting or starting up (Status ${res.status}). Please retry in 5 seconds.`);
+      }
+
       if (!res.ok || !data.success) {
         throw new Error(data.message || 'Invalid police credentials');
       }
