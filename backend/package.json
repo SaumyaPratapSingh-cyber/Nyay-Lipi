@@ -4,7 +4,7 @@
   "description": "Enterprise-grade ambient digital witness FIR backend with dual-verification & cryptographic locking",
   "main": "dist/index.js",
   "scripts": {
-    "build": "npx tsc",
+    "build": "tsc",
     "start": "node dist/index.js",
     "dev": "node ./node_modules/ts-node-dev/lib/bin.js --respawn --transpile-only src/index.ts",
     "seed:bns": "node ./node_modules/ts-node/dist/bin.js src/seed/seedBNS.ts",
