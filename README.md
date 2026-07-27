@@ -153,8 +153,8 @@ npm install
 Create `.env` file inside `backend/`:
 ```env
 PORT=5000
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.z8gouio.mongodb.net/nyaya_lipi?retryWrites=true&w=majority
-JWT_SECRET=nyaya_lipi_super_secret_jwt_key_2026
+MONGODB_URI=your_mongodb_connection_string_here
+JWT_SECRET=your_jwt_secret_here
 NODE_ENV=development
 ```
 
@@ -179,16 +179,9 @@ Open **[http://localhost:3000/](http://localhost:3000/)** in Google Chrome or Mi
 
 ---
 
-## 🔑 Default Authentication Credentials
+## 🔑 System Authentication Overview
 
-### 👑 Master Admin HQ Portal (`http://localhost:3000/admin`)
-- **Email**: `saumyrajpoot666@gmail.com`
-- **Badge Number**: `ADMIN-HQ-MAIN`
-- **Password**: `Admin@9987`
-
-### 👮 Station Officer Workstation (`http://localhost:3000/`)
-- **Badge Number**: `PNO-9837` *(or Email: `surjeet.rana@up.police.gov.in`)*
-- **Password**: `Officer@123`
+- System Administrator & Station Officer credentials can be provisioned directly via the Admin HQ Portal (`/admin`).
 
 ---
 
@@ -198,17 +191,16 @@ Open **[http://localhost:3000/](http://localhost:3000/)** in Google Chrome or Mi
 1. Push project repository to GitHub: `https://github.com/SaumyaPratapSingh-cyber/Nyay-Lipi.git`
 2. Go to [Vercel Dashboard](https://vercel.com/) and click **`Add New Project`**.
 3. Import `SaumyaPratapSingh-cyber/Nyay-Lipi`.
-4. Vercel automatically detects `vercel.json` and builds the frontend bundle from `frontend/`.
-5. Your frontend will be live at `https://nyay-lipi.vercel.app`!
+4. Set Environment Variable: `VITE_API_URL` (pointing to your live backend domain).
+5. Click **`Deploy`**.
 
 ### 2. Deploy Backend on Render
-1. Go to [Render Dashboard](https://render.com/) and click **`New -> Blueprints`**.
+1. Go to [Render Dashboard](https://render.com/) and click **`New Web Service`**.
 2. Connect your `SaumyaPratapSingh-cyber/Nyay-Lipi` repository.
-3. Render automatically picks up `render.yaml`.
-4. Add environment variables in Render Dashboard:
-   - `MONGODB_URI`: `mongodb+srv://saumyrajpoot666_db_user:NP8tXALxPLhalnIN@cluster0.z8gouio.mongodb.net/nyaya_lipi?retryWrites=true&w=majority`
-   - `JWT_SECRET`: `nyaya_lipi_super_secret_jwt_key_2026`
-5. Click **`Apply`**. Your backend API gateway will be live on Render!
+3. Configure environment variables in Render Dashboard:
+   - `MONGODB_URI`: `<Your Private MongoDB Connection String>`
+   - `JWT_SECRET`: `<Your Private Secret Key>`
+4. Click **`Deploy`**.
 
 ---
 
