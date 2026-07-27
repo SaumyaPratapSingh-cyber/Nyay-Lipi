@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, UserPlus, FileText, Building2, Lock, RefreshCw, Eye, Sparkles, Edit3, X, KeyRound, CheckCircle2, Play, Volume2, Shield } from 'lucide-react';
 import { OfficialFIRPDF } from './OfficialFIRPDF';
+import { getApiUrl } from '../api';
 
 interface AdminPortalProps {
   token: string;
@@ -35,9 +36,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ token }) => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [stnRes, usrRes, firRes] = await Promise.all([
-        fetch('/api/admin/stations', { headers }),
-        fetch('/api/admin/users', { headers }),
-        fetch('/api/admin/global-firs', { headers }),
+        fetch(getApiUrl('/api/admin/stations'), { headers }),
+        fetch(getApiUrl('/api/admin/users'), { headers }),
+        fetch(getApiUrl('/api/admin/global-firs'), { headers }),
       ]);
 
       const [stnData, usrData, firData] = await Promise.all([stnRes.json(), usrRes.json(), firRes.json()]);
@@ -78,7 +79,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ token }) => {
     }
 
     try {
-      const res = await fetch('/api/admin/officers', {
+      const res = await fetch(getApiUrl('/api/admin/officers'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(officerForm),
@@ -109,7 +110,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ token }) => {
   const handleSaveProfileUpdates = async () => {
     if (!selectedOfficer) return;
     try {
-      const res = await fetch(`/api/admin/users/${selectedOfficer._id}`, {
+      const res = await fetch(getApiUrl(`/api/admin/users/${selectedOfficer._id}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -139,7 +140,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ token }) => {
     }
 
     try {
-      const res = await fetch(`/api/admin/users/${selectedOfficer._id}/password`, {
+      const res = await fetch(getApiUrl(`/api/admin/users/${selectedOfficer._id}/password`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ newPassword: newPasswordInput }),

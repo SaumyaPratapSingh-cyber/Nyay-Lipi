@@ -10,6 +10,7 @@ import { BNSModal } from './components/BNSModal';
 import { IntakeModal } from './components/IntakeModal';
 import { OfficialFIRPDF } from './components/OfficialFIRPDF';
 import { BookOpen, RefreshCw, FileText, PlusCircle, Tag, Shield, ChevronRight, Clock, User, Sparkles, Scale } from 'lucide-react';
+import { getApiUrl } from './api';
 
 export const App: React.FC = () => {
   const [pathname, setPathname] = useState(window.location.pathname);
@@ -70,14 +71,14 @@ export const App: React.FC = () => {
   // Fetch FIRs from backend
   const fetchFIRs = async () => {
     try {
-      const res = await fetch('/api/firs');
+      const res = await fetch(getApiUrl('/api/firs'));
       const data = await res.json();
       if (data.success) {
         setFirs(data.firs);
       }
 
       // Fetch SP Escalations Queue
-      const spRes = await fetch('/api/firs/sp/escalations');
+      const spRes = await fetch(getApiUrl('/api/firs/sp/escalations'));
       const spData = await spRes.json();
       if (spData.success) {
         setEscalatedFirs(spData.firs);
@@ -96,7 +97,7 @@ export const App: React.FC = () => {
   // Initiate New FIR Token Session via Intake Modal
   const handleInitiateFIR = async (intakeData: any) => {
     try {
-      const res = await fetch('/api/firs/audio-draft', {
+      const res = await fetch(getApiUrl('/api/firs/audio-draft'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -121,7 +122,7 @@ export const App: React.FC = () => {
   const handleTranscriptGenerated = async (liveTranscript: string, diarization: any[], audioFileUrl?: string) => {
     if (!activeFir) return;
     try {
-      const res = await fetch(`/api/firs/${activeFir._id}/typed-draft`, {
+      const res = await fetch(getApiUrl(`/api/firs/${activeFir._id}/typed-draft`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -146,7 +147,7 @@ export const App: React.FC = () => {
   const handleOfficerTypedSubmit = async (typedText: string, selectedSections: string[]) => {
     if (!activeFir) return;
     try {
-      const res = await fetch(`/api/firs/${activeFir._id}/typed-draft`, {
+      const res = await fetch(getApiUrl(`/api/firs/${activeFir._id}/typed-draft`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -174,7 +175,7 @@ export const App: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`/api/firs/${activeFir._id}/register`, {
+      const res = await fetch(getApiUrl(`/api/firs/${activeFir._id}/register`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ justificationNotes: justification }),
@@ -195,7 +196,7 @@ export const App: React.FC = () => {
   const handleReject = async (reason: string) => {
     if (!activeFir) return;
     try {
-      const res = await fetch(`/api/firs/${activeFir._id}/reject`, {
+      const res = await fetch(getApiUrl(`/api/firs/${activeFir._id}/reject`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ officerRejectionReason: reason }),
@@ -213,7 +214,7 @@ export const App: React.FC = () => {
   // Handle SP Action
   const handleSPDecision = async (firId: string, action: 'OVERRIDE_REGISTER' | 'APPROVE_REJECTION', notes: string) => {
     try {
-      const res = await fetch(`/api/firs/${firId}/sp-action`, {
+      const res = await fetch(getApiUrl(`/api/firs/${firId}/sp-action`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, spNotes: notes, spBadgeNumber: currentUser?.badgeNumber }),
