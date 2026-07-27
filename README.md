@@ -24,23 +24,23 @@
 ```mermaid
 flowchart TD
     subgraph Station ["Police Station Ambient Sensor Node"]
-        A1["Officer-Complainant Spoken Interview"] -->|Microphone Audio Stream| A2["Web MediaRecorder API (Real Audio Blob)"]
-        A1 -->|Speech-to-Text STT (hi-IN / en-IN)| A3["Real-Time Verbatim Transcripts"]
+        A1["Officer-Complainant Spoken Interview"] -->|"Microphone Audio Stream"| A2["Web MediaRecorder API"]
+        A1 -->|"Speech-to-Text STT"| A3["Real-Time Verbatim Transcripts"]
         A4["Officer Manual Typed Notes"] --> A5["BNS Penal Code Selection"]
     end
 
     subgraph CoreEngine ["Nyaya-Lipi Intelligence Engine"]
         A3 --> B1["Devanagari Hindi & Indic Dialect NLP Parser"]
-        B1 --> B2["Fact Entity Extraction (Stolen Items, Transport, Location)"]
-        B2 --> B3["BNS 2023 Penal Code Auto-Mapper (Section 303(2), 304(2), etc.)"]
+        B1 --> B2["Fact Entity Extraction"]
+        B2 --> B3["BNS 2023 Penal Code Auto-Mapper"]
         
         A5 & B3 --> B4["Dual-Draft Fact Integrity & Discrepancy Analyzer"]
         B4 --> B5["Cryptographic SHA-256 Merkle Evidence Engine"]
     end
 
     subgraph Governance ["Cloud Ledger & Admin HQ Command"]
-        B5 -->|Tamper-Proof Lock| C1[("MongoDB Atlas Database")]
-        C1 --> C2["Central Admin HQ Command Portal (/admin)"]
+        B5 -->|"Tamper-Proof Lock"| C1[("MongoDB Atlas Database")]
+        C1 --> C2["Central Admin HQ Command Portal"]
         C2 --> C3["Embedded Raw Audio Voice Player"]
         C2 --> C4["Bilingual Form-I FIR Legal PDF Synthesizer"]
         C2 --> C5["24-Hour SP Oversight Escalation Countdown"]
@@ -153,8 +153,8 @@ npm install
 Create `.env` file inside `backend/`:
 ```env
 PORT=5000
-MONGODB_URI=your_mongodb_connection_string_here
-JWT_SECRET=your_jwt_secret_here
+MONGODB_URI=<your_mongodb_connection_string_here>
+JWT_SECRET=<your_jwt_secret_here>
 NODE_ENV=development
 ```
 
