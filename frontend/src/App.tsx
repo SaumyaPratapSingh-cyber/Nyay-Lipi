@@ -9,7 +9,7 @@ import { AdminPortal } from './components/AdminPortal';
 import { BNSModal } from './components/BNSModal';
 import { IntakeModal } from './components/IntakeModal';
 import { OfficialFIRPDF } from './components/OfficialFIRPDF';
-import { BookOpen, RefreshCw, FileText, PlusCircle, Tag, Shield, ChevronRight, Clock, User } from 'lucide-react';
+import { BookOpen, RefreshCw, FileText, PlusCircle, Tag, Shield, ChevronRight, Clock, User, Sparkles, Scale } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [pathname, setPathname] = useState(window.location.pathname);
@@ -25,6 +25,15 @@ export const App: React.FC = () => {
   const [isBNSOpen, setIsBNSOpen] = useState(false);
   const [isIntakeOpen, setIsIntakeOpen] = useState(false);
   const [pdfFir, setPdfFir] = useState<any>(null);
+  const [appLoading, setAppLoading] = useState(true);
+
+  // Animated UP Police Splash Screen on initial launch
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAppLoading(false);
+    }, 1600);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Sync pathname on navigation
   useEffect(() => {
@@ -219,6 +228,31 @@ export const App: React.FC = () => {
     }
   };
 
+  // Render UP Police Animated Brand Loading Splash Screen
+  if (appLoading) {
+    return (
+      <div className="police-splash-overlay">
+        <div className="police-emblem-ring">
+          <div className="police-emblem-center">
+            <Shield size={38} color="#f59e0b" />
+            <Scale size={20} color="#fff" style={{ marginTop: '2px' }} />
+          </div>
+        </div>
+
+        <h1 className="police-title-glow">NYAYA-LIPI (न्याय-लिपि)</h1>
+        <p className="police-subtext">UTTAR PRADESH POLICE • उत्तर प्रदेश पुलिस निष्पक्ष साक्ष्य प्रणाली</p>
+
+        <div className="loading-bar-track">
+          <div className="loading-bar-fill"></div>
+        </div>
+
+        <div style={{ marginTop: '16px', fontSize: '0.8rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Sparkles size={14} color="#f59e0b" /> Initializing Cryptographic Evidence Engine & Devanagari NLP...
+        </div>
+      </div>
+    );
+  }
+
   // Render Login Screen if not logged in
   if (!currentUser) {
     return <LoginScreen isAdminRoute={isAdminRoute} onLoginSuccess={handleLoginSuccess} />;
@@ -257,7 +291,7 @@ export const App: React.FC = () => {
     <div style={{ minHeight: '100vh', paddingBottom: '40px' }}>
       <Navbar currentUser={currentUser} onLogout={handleLogout} isAdminRoute={false} />
 
-      <main className="container" style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 20px' }}>
+      <main className="container" style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px' }}>
         {currentUser.role === 'SP' ? (
           <SPOversightDashboard
             escalatedFIRs={escalatedFirs}
@@ -308,7 +342,7 @@ export const App: React.FC = () => {
                           style={{
                             padding: '12px',
                             borderRadius: '10px',
-                            background: isActive ? 'rgba(212, 175, 55, 0.2)' : 'rgba(0,0,0,0.3)',
+                            background: isActive ? 'rgba(245, 158, 11, 0.2)' : 'rgba(0,0,0,0.3)',
                             border: isActive ? '1px solid var(--primary-gold)' : '1px solid var(--border-card)',
                             cursor: 'pointer',
                             transition: 'all 0.2s ease',
@@ -359,7 +393,7 @@ export const App: React.FC = () => {
                     Impartial edge-to-cloud witness system designed under <strong>Bharatiya Nagarik Suraksha Sanhita (BNSS 2023) Section 173</strong>. Select an existing token from the left queue or initiate a new complainant FIR token.
                   </p>
 
-                  <button className="btn-primary" style={{ padding: '14px 32px', fontSize: '1.05rem', boxShadow: '0 10px 25px rgba(212, 175, 55, 0.4)' }} onClick={() => setIsIntakeOpen(true)}>
+                  <button className="btn-primary" style={{ padding: '14px 32px', fontSize: '1.05rem', boxShadow: '0 10px 25px rgba(245, 158, 11, 0.4)' }} onClick={() => setIsIntakeOpen(true)}>
                     <PlusCircle size={20} /> Initiate New FIR Token
                   </button>
                 </div>
